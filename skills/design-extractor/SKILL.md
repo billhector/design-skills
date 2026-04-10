@@ -6,6 +6,12 @@ allowed-tools:
   - Bash(firecrawl *)
   - Bash(npx firecrawl *)
   - Bash(mkdir *)
+  - Bash(curl *)
+  - Bash(cat */design-extract* | grep *)
+  - Bash(cat */design-extract* | tr *)
+  - Bash(SCREENSHOT_URL=*)
+  - Bash(file *)
+  - Bash(cp *)
   - Read
   - Write
   - Glob
@@ -31,11 +37,20 @@ Scrapes a URL, analyzes the visual design system, and generates: DESIGN.md, tail
 
 3. **Capture screenshot** — run:
    ```bash
-   firecrawl scrape "<url>" --format screenshot -o /tmp/design-extract-preview.png
+   firecrawl scrape "<url>" --format screenshot -o /tmp/design-extract-screenshot-raw.txt
    ```
-   This captures a visual reference of the page as-is.
+   Firecrawl returns a URL to the screenshot, not the binary file. Extract and download it:
+   ```bash
+   SCREENSHOT_URL=$(head -1 /tmp/design-extract-screenshot-raw.txt | sed 's/Screenshot: //') && curl -sL "$SCREENSHOT_URL" -o /tmp/design-extract-preview.png
+   ```
+   Verify it's a valid PNG: `file /tmp/design-extract-preview.png` should show "PNG image data".
 
-4. **Read the scraped file** — read `/tmp/design-extract-raw.html` and analyze the HTML for design tokens.
+4. **Read the scraped file** — the HTML file may be very large (500KB+). Don't try to read it all at once. Instead:
+   - Extract hex colors: `cat /tmp/design-extract-raw.html | grep -oE '#[0-9a-fA-F]{3,8}' | sort | uniq -c | sort -rn | head -30`
+   - Look for font names: `cat /tmp/design-extract-raw.html | grep -ioE 'inter|roboto|SF Pro|system-ui|helvetica|poppins|outfit|geist|sohne' | sort | uniq -c | sort -rn`
+   - Check dark mode: `cat /tmp/design-extract-raw.html | grep -oE 'data-theme="[^"]+"' | sort -u` and `cat /tmp/design-extract-raw.html | grep -oE 'color-scheme:[^;"]+' | sort -u`
+   - Extract radius values: `cat /tmp/design-extract-raw.html | grep -oE 'border-radius:[^;"]+' | sort | uniq -c | sort -rn | head -10`
+   - Then read portions of the file with offset/limit to examine specific style blocks and class patterns.
 
 5. **Extract design tokens** — follow the Analysis Instructions below to identify colors, typography, spacing, shadows, radii, layout patterns, and responsive breakpoints. Also detect dark mode — see Dark Mode Detection below.
 
@@ -140,6 +155,8 @@ If dark mode is detected:
 - Note which mechanism is used (media query vs class toggle)
 - Include section 10 in DESIGN.md and the dark mode block in tailwind-theme.css
 - Run accessibility checks for both light and dark palettes
+
+If the site is **dark-first** (the default/only theme served is dark, like Linear), note this in the DESIGN.md — the main palette IS the dark palette. The tailwind-theme.css should include a comment suggesting where to add light mode overrides if needed, rather than a `prefers-color-scheme: dark` block.
 
 If no dark mode is detected, skip section 10 and the dark CSS block. Do not fabricate a dark palette.
 
