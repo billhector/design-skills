@@ -165,6 +165,25 @@ Note max-width values, grid patterns, and container padding.
 
 Collect all @media breakpoint values. Note what changes at each.
 
+### Dark Mode
+
+Look for dark mode patterns in the project files:
+
+1. **`prefers-color-scheme` media queries** — `@media (prefers-color-scheme: dark)` blocks with alternate color values
+2. **Dark mode class toggles** — `.dark`, `[data-theme="dark"]`, `.theme-dark`, `[color-scheme="dark"]` selectors
+3. **CSS custom property overrides** — `:root` variables redefined inside dark mode selectors or media queries
+4. **Tailwind dark mode classes** — `dark:bg-*`, `dark:text-*` patterns in HTML/templates
+5. **Tailwind v3 config** — `darkMode: 'class'` or `darkMode: 'media'` in tailwind.config
+6. **WordPress theme.json** — `settings.color.palette` entries with dark variants, or separate color sets under `styles.blocks` for dark contexts
+
+If dark mode is detected:
+- Extract a complete alternate color palette (all the same roles)
+- Note which mechanism is used (media query vs class toggle)
+- Include section 10 in DESIGN.md and the dark mode block in tailwind-theme.css
+- Run accessibility checks for both light and dark palettes
+
+If no dark mode is detected, skip section 10 and the dark CSS block. Do not fabricate a dark palette.
+
 ## Tailwind Migration Instructions
 
 ### From Tailwind v4 (already)
@@ -343,6 +362,25 @@ One paragraph describing the current aesthetic based on what was found in the co
 | lg | ...px | ... |
 | xl | ...px | ... |
 
+## 10. Dark Mode (if detected)
+
+**Mechanism:** `<prefers-color-scheme | class toggle (.dark) | data attribute | Tailwind dark: classes>`
+**Source:** `<file(s) where dark mode was found>`
+
+### Dark Color Palette
+| Token | Light | Dark | Role | Source |
+|-------|-------|------|------|--------|
+| text | #... | #... | Body text | `file:line` |
+| background | #... | #... | Page background | `file:line` |
+| primary | #... | #... | Brand, CTA | `file:line` |
+| secondary | #... | #... | Supporting brand | `file:line` |
+| accent | #... | #... | Decorative | `file:line` |
+| muted | #... | #... | Secondary text | `file:line` |
+| border | #... | #... | Borders | `file:line` |
+| card | #... | #... | Card surfaces | `file:line` |
+
+<!-- Only include this section if dark mode was detected in the project files. Do not fabricate a dark palette. -->
+
 ## Migration Notes
 
 <!-- Any notes about what was consolidated, what was ambiguous, what the user should verify -->
@@ -418,6 +456,36 @@ Note: the auditor template includes a **Source File** column in each table and a
   font-weight: 400;
   font-style: normal;
   font-display: swap;
+}
+*/
+
+/* Dark mode — only include if detected in project files
+ * Uses prefers-color-scheme by default.
+ * If the project uses a class toggle (.dark), replace the @media query
+ * with: .dark { ... }
+ */
+/*
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-text: #...;       /* source: <original> */
+    --color-background: #...; /* source: <original> */
+    --color-primary: #...;    /* source: <original> */
+    --color-secondary: #...;  /* source: <original> */
+    --color-accent: #...;     /* source: <original> */
+    --color-muted: #...;      /* source: <original> */
+    --color-error: #...;      /* source: <original> */
+    --color-success: #...;    /* source: <original> */
+    --color-warning: #...;    /* source: <original> */
+    --color-border: #...;     /* source: <original> */
+    --color-card: #...;       /* source: <original> */
+
+    --color-primary-light: color-mix(in oklch, var(--color-primary), white 30%);
+    --color-primary-dark: color-mix(in oklch, var(--color-primary), black 20%);
+    --color-secondary-light: color-mix(in oklch, var(--color-secondary), white 30%);
+    --color-secondary-dark: color-mix(in oklch, var(--color-secondary), black 20%);
+    --color-accent-light: color-mix(in oklch, var(--color-accent), white 30%);
+    --color-accent-dark: color-mix(in oklch, var(--color-accent), black 20%);
+  }
 }
 */
 ```

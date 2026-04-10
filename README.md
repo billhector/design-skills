@@ -6,20 +6,22 @@ Two Claude Code skills that turn any website or existing project into a document
 
 ### design-extractor
 
-Give it a URL, get back a complete design system. Scrapes the site with Firecrawl, analyzes the HTML for design tokens, and generates:
+Give it a URL, get back a complete design system. Scrapes the site with Firecrawl, captures a screenshot, analyzes the HTML for design tokens, and generates:
 
-- **DESIGN.md** — colors, typography, components, spacing, elevation, layout, responsive behavior
-- **tailwind-theme.css** — Tailwind v4 `@theme` block with semantic tokens, fluid spacing, and `color-mix()` variants
-- **accessibility-report.md** — WCAG AA/AAA contrast checks for every surface/text pair, colorblindness simulation, suggested fixes
+- **DESIGN.md** — colors, typography, components, spacing, elevation, layout, responsive behavior, dark mode (if detected)
+- **tailwind-theme.css** — Tailwind v4 `@theme` block with semantic tokens, fluid spacing, `color-mix()` variants, and dark mode overrides
+- **accessibility-report.md** — WCAG AA/AAA contrast checks for every surface/text pair (light and dark), colorblindness simulation, suggested fixes
+- **preview.png** — screenshot of the source page for visual reference
 
 ### design-auditor
 
-Point it at an existing project. Reads your CSS, Tailwind config, WordPress theme.json, or HTML templates and generates the same three files — plus handles migration:
+Point it at an existing project. Reads your CSS, Tailwind config, WordPress theme.json, or HTML templates and generates the same files (minus screenshot) — plus handles migration:
 
 - **Tailwind v4 already?** Validates and normalizes your existing theme
 - **Tailwind v3?** Converts your config to v4 `@theme` format
 - **No Tailwind?** Generates a fresh theme from your extracted values
 - **WordPress theme.json?** Maps palette, fonts, and spacing to Tailwind tokens
+- **Dark mode?** Detects `prefers-color-scheme`, `.dark` class toggles, and Tailwind `dark:` classes
 
 ## Usage
 
@@ -50,7 +52,8 @@ Most existing tools handle one piece — scraping, or token extraction, or Tailw
 | Scrape or scan | Firecrawl for URLs, local file reading for projects |
 | Extract tokens | Colors, typography, spacing, radius, shadows, layout, breakpoints |
 | Generate theme | Tailwind v4 `@theme` with semantic tokens and fluid spacing |
-| Check accessibility | WCAG contrast ratios + colorblindness simulation |
+| Check accessibility | WCAG contrast ratios + colorblindness simulation (light + dark) |
+| Capture screenshot | Visual reference saved as preview.png (extractor only) |
 | Save to library | Reusable across projects via `~/.claude/designs/` |
 
 No other Claude Code skill does all five.
@@ -94,11 +97,11 @@ That's it. The skills will be available in your next Claude Code session.
 
 ## Output
 
-Both skills produce three files:
+The extractor produces four files, the auditor produces three (no screenshot):
 
 ### DESIGN.md
 
-Nine sections covering the complete design system:
+Up to ten sections covering the complete design system:
 
 1. Visual Theme & Atmosphere
 2. Color Palette (primary, secondary, accent, neutral, status, surface, border)
@@ -109,6 +112,7 @@ Nine sections covering the complete design system:
 7. Border Radius (micro, button, card, featured)
 8. Elevation (shadow levels 0-4 + focus)
 9. Responsive Behavior (breakpoints and changes)
+10. Dark Mode (if detected — alternate color palette with mechanism noted)
 
 ### tailwind-theme.css
 
@@ -120,6 +124,7 @@ A ready-to-import Tailwind v4 `@theme` block:
 - Border radius scale
 - Font family with fallback stack
 - Commented `@font-face` template (fonts need to be self-hosted separately)
+- Dark mode `@media (prefers-color-scheme: dark)` block (if detected — adapts to `.dark` class toggle if that's what the source uses)
 
 ### accessibility-report.md
 
@@ -127,6 +132,7 @@ A ready-to-import Tailwind v4 `@theme` block:
 - WCAG AA and AAA pass/fail for both normal and large text
 - Suggested fixes for each failing pair (specific hex values to meet the threshold)
 - Colorblindness simulation — flags pairs that become indistinguishable under protanopia, deuteranopia, or tritanopia
+- If dark mode detected: separate checks for both light and dark palettes
 - Summary with pass rates and critical failure count
 
 ## File Locations

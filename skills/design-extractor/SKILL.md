@@ -15,7 +15,7 @@ allowed-tools:
 
 # Design Extractor
 
-Scrapes a URL, analyzes the visual design system, and generates three files: DESIGN.md, tailwind-theme.css, and accessibility-report.md.
+Scrapes a URL, analyzes the visual design system, and generates: DESIGN.md, tailwind-theme.css, accessibility-report.md, and a preview screenshot.
 
 **Announce at start:** "I'm using the design-extractor skill."
 
@@ -29,28 +29,35 @@ Scrapes a URL, analyzes the visual design system, and generates three files: DES
    ```
    If that fails or returns thin content, try without `--only-main-content` to get the full page. For JS-heavy sites, add `--wait-for 3000`.
 
-3. **Read the scraped file** — read `/tmp/design-extract-raw.html` and analyze the HTML for design tokens.
+3. **Capture screenshot** — run:
+   ```bash
+   firecrawl scrape "<url>" --format screenshot -o /tmp/design-extract-preview.png
+   ```
+   This captures a visual reference of the page as-is.
 
-4. **Extract design tokens** — follow the Analysis Instructions below to identify colors, typography, spacing, shadows, radii, layout patterns, and responsive breakpoints.
+4. **Read the scraped file** — read `/tmp/design-extract-raw.html` and analyze the HTML for design tokens.
 
-5. **Generate DESIGN.md** — structure extracted tokens into the nine-section format using the Output Template below.
+5. **Extract design tokens** — follow the Analysis Instructions below to identify colors, typography, spacing, shadows, radii, layout patterns, and responsive breakpoints. Also detect dark mode — see Dark Mode Detection below.
 
-6. **Generate tailwind-theme.css** — map extracted tokens to semantic Tailwind v4 theme variables using the Output Template below.
+6. **Generate DESIGN.md** — structure extracted tokens into the format using the Output Template below. If dark mode was detected, include section 10 (Dark Mode).
 
-7. **Run accessibility checks** — follow the Accessibility Check Instructions below. Generate accessibility-report.md.
+7. **Generate tailwind-theme.css** — map extracted tokens to semantic Tailwind v4 theme variables using the Output Template below. If dark mode was detected, include the `@media (prefers-color-scheme: dark)` block.
 
-8. **Save to library** — write all three files to `~/.claude/designs/<name>/`. Create the directory if needed:
+8. **Run accessibility checks** — follow the Accessibility Check Instructions below. Generate accessibility-report.md. If dark mode was detected, run checks for both light and dark palettes.
+
+9. **Save to library** — write all files to `~/.claude/designs/<name>/`. Create the directory if needed:
    ```bash
    mkdir -p ~/.claude/designs/<name>
    ```
+   Copy the screenshot: move `/tmp/design-extract-preview.png` to `~/.claude/designs/<name>/preview.png`.
 
-9. **Update library index** — read `~/.claude/designs/_index.md` and append a row:
-   ```
-   | <name> | <url> | <YYYY-MM-DD> | <color-count> | <aa-pass-rate>% |
-   ```
-   If a design with the same name already exists in the index, ask the user before overwriting.
+10. **Update library index** — read `~/.claude/designs/_index.md` and append a row:
+    ```
+    | <name> | <url> | <YYYY-MM-DD> | <color-count> | <aa-pass-rate>% | <dark-mode?> |
+    ```
+    If a design with the same name already exists in the index, ask the user before overwriting.
 
-10. **Ask about project** — "Want me to copy this into your current project's `.claude/design/` directory?" If yes, create `.claude/design/` and copy all three files.
+11. **Ask about project** — "Want me to copy this into your current project's `.claude/design/` directory?" If yes, create `.claude/design/` and copy all files including preview.png.
 
 ## Analysis Instructions
 
@@ -118,6 +125,23 @@ Look for `@media` queries. Note:
 ### When Uncertain
 
 If a token is ambiguous (e.g., a color could be primary or secondary), make your best judgment based on visual prominence and usage frequency. Add a `<!-- uncertain: reason -->` comment in the DESIGN.md output so the user can verify.
+
+## Dark Mode Detection
+
+Look for dark mode indicators in the scraped HTML:
+
+1. **`prefers-color-scheme` media queries** — `@media (prefers-color-scheme: dark)` blocks with alternate color values
+2. **Dark mode class toggles** — `.dark`, `[data-theme="dark"]`, `.theme-dark`, `[color-scheme="dark"]` selectors with alternate colors
+3. **CSS custom property overrides** — `:root` variables redefined inside dark mode selectors or media queries
+4. **Tailwind dark mode classes** — `dark:bg-*`, `dark:text-*` patterns in HTML
+
+If dark mode is detected:
+- Extract a complete alternate color palette (all the same roles: primary, secondary, accent, neutral, status, surface, border)
+- Note which mechanism is used (media query vs class toggle)
+- Include section 10 in DESIGN.md and the dark mode block in tailwind-theme.css
+- Run accessibility checks for both light and dark palettes
+
+If no dark mode is detected, skip section 10 and the dark CSS block. Do not fabricate a dark palette.
 
 ## Output Templates
 
@@ -256,6 +280,24 @@ One paragraph describing the overall aesthetic: mood, visual language, influence
 | md | ...px | ... |
 | lg | ...px | ... |
 | xl | ...px | ... |
+
+## 10. Dark Mode (if detected)
+
+**Mechanism:** `<prefers-color-scheme | class toggle (.dark) | data attribute>`
+
+### Dark Color Palette
+| Token | Light | Dark | Role |
+|-------|-------|------|------|
+| text | #... | #... | Body text |
+| background | #... | #... | Page background |
+| primary | #... | #... | Brand, CTA |
+| secondary | #... | #... | Supporting brand |
+| accent | #... | #... | Decorative |
+| muted | #... | #... | Secondary text |
+| border | #... | #... | Borders |
+| card | #... | #... | Card surfaces |
+
+<!-- Only include this section if dark mode was detected in the source. Do not fabricate a dark palette. -->
 ```
 
 ### tailwind-theme.css
@@ -325,6 +367,36 @@ One paragraph describing the overall aesthetic: mood, visual language, influence
   font-weight: 400;
   font-style: normal;
   font-display: swap;
+}
+*/
+
+/* Dark mode — only include if detected in source
+ * Uses prefers-color-scheme by default.
+ * If the source uses a class toggle (.dark), replace the @media query
+ * with: .dark { ... }
+ */
+/*
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-text: #...;
+    --color-background: #...;
+    --color-primary: #...;
+    --color-secondary: #...;
+    --color-accent: #...;
+    --color-muted: #...;
+    --color-error: #...;
+    --color-success: #...;
+    --color-warning: #...;
+    --color-border: #...;
+    --color-card: #...;
+
+    --color-primary-light: color-mix(in oklch, var(--color-primary), white 30%);
+    --color-primary-dark: color-mix(in oklch, var(--color-primary), black 20%);
+    --color-secondary-light: color-mix(in oklch, var(--color-secondary), white 30%);
+    --color-secondary-dark: color-mix(in oklch, var(--color-secondary), black 20%);
+    --color-accent-light: color-mix(in oklch, var(--color-accent), white 30%);
+    --color-accent-dark: color-mix(in oklch, var(--color-accent), black 20%);
+  }
 }
 */
 ```
@@ -441,7 +513,7 @@ For each failing contrast pair, suggest the minimum color adjustment needed:
 ### Saving to Library
 
 1. Create the design directory: `mkdir -p ~/.claude/designs/<name>`
-2. Write all three files to `~/.claude/designs/<name>/`
+2. Write all four files to `~/.claude/designs/<name>/` (DESIGN.md, tailwind-theme.css, accessibility-report.md, preview.png)
 3. Read `~/.claude/designs/_index.md`
 4. Append a new row with: name, source URL, today's date, count of unique colors extracted, AA pass rate from the accessibility report
 5. Write the updated `_index.md`
@@ -454,7 +526,7 @@ When the user says "use the <name> design" in any project:
 
 1. Read files from `~/.claude/designs/<name>/`
 2. Create `.claude/design/` in the current project: `mkdir -p .claude/design`
-3. Copy all three files (DESIGN.md, tailwind-theme.css, accessibility-report.md)
+3. Copy all files (DESIGN.md, tailwind-theme.css, accessibility-report.md, preview.png)
 4. Confirm: "Copied <name> design to `.claude/design/`. The tailwind-theme.css is ready to import into your stylesheet."
 
 ## See Also
