@@ -1,39 +1,59 @@
 # Design Skills for Claude Code
 
-Two Claude Code skills that extract, document, and audit visual design systems — with Tailwind v4 theme generation and WCAG accessibility checks built in.
+Two Claude Code skills that turn any website or existing project into a documented design system — with Tailwind v4 theme generation and WCAG accessibility checks.
 
 ## Skills
 
 ### design-extractor
 
-Extract a design system from any website URL. Point it at a site, get back three files:
+Give it a URL, get back a complete design system. Scrapes the site with Firecrawl, analyzes the HTML for design tokens, and generates:
 
-- **DESIGN.md** — full design system spec (colors, typography, components, spacing, elevation, layout, responsive behavior)
+- **DESIGN.md** — colors, typography, components, spacing, elevation, layout, responsive behavior
 - **tailwind-theme.css** — Tailwind v4 `@theme` block with semantic tokens, fluid spacing, and `color-mix()` variants
-- **accessibility-report.md** — WCAG contrast ratios for every surface/text pair, colorblindness simulation flags, suggested fixes
-
-**Usage:** "Extract the design from stripe.com"
+- **accessibility-report.md** — WCAG AA/AAA contrast checks for every surface/text pair, colorblindness simulation, suggested fixes
 
 ### design-auditor
 
-Audit an existing project's CSS, Tailwind config, WordPress theme.json, or HTML templates. Produces the same three output files, plus handles Tailwind migration:
+Point it at an existing project. Reads your CSS, Tailwind config, WordPress theme.json, or HTML templates and generates the same three files — plus handles migration:
 
 - **Tailwind v4 already?** Validates and normalizes your existing theme
 - **Tailwind v3?** Converts your config to v4 `@theme` format
 - **No Tailwind?** Generates a fresh theme from your extracted values
 - **WordPress theme.json?** Maps palette, fonts, and spacing to Tailwind tokens
 
-**Usage:** "Audit my design" or "Migrate to Tailwind"
+## Usage
+
+These are Claude Code skills — you invoke them with natural language in a Claude Code session:
+
+```
+"Extract the design from stripe.com"
+"Grab the design from linear.app"
+"Audit my design"
+"Audit this project's design system"
+"Migrate to Tailwind"
+```
+
+Both skills ask you to name the design before saving. Extracted designs are saved to a reusable library at `~/.claude/designs/`. You can apply a saved design to any project later:
+
+```
+"Use the stripe design"
+```
+
+This copies the DESIGN.md, tailwind-theme.css, and accessibility-report.md into your current project's `.claude/design/` directory, where other skills (like `design-system-standards` or `frontend-design`) can pick them up automatically.
 
 ## What Makes This Different
 
-Most tools handle one piece. These skills combine the full pipeline in a single pass:
+Most existing tools handle one piece — scraping, or token extraction, or Tailwind config, or accessibility. These skills combine the full pipeline in a single pass:
 
-1. **Scrape or scan** — Firecrawl for URLs, local file reading for projects
-2. **Extract tokens** — colors (primary, secondary, accent, neutral, status, surface, border), typography, spacing, radius, shadows, layout, breakpoints
-3. **Generate Tailwind v4 theme** — semantic tokens, fluid `clamp()` spacing, `color-mix()` light/dark variants
-4. **Accessibility audit** — WCAG AA/AAA contrast checks + protanopia/deuteranopia/tritanopia colorblindness simulation
-5. **Library management** — save to `~/.claude/designs/` for reuse across projects
+| Step | What happens |
+|------|-------------|
+| Scrape or scan | Firecrawl for URLs, local file reading for projects |
+| Extract tokens | Colors, typography, spacing, radius, shadows, layout, breakpoints |
+| Generate theme | Tailwind v4 `@theme` with semantic tokens and fluid spacing |
+| Check accessibility | WCAG contrast ratios + colorblindness simulation |
+| Save to library | Reusable across projects via `~/.claude/designs/` |
+
+No other Claude Code skill does all five.
 
 ## Requirements
 
@@ -65,34 +85,16 @@ The **design-auditor does not require Firecrawl** — it reads local project fil
 Copy the skill folders into your Claude Code skills directory:
 
 ```bash
-# Clone the repo
 git clone https://github.com/billhector/design-skills.git
-
-# Copy skills to your Claude Code skills directory
 cp -r design-skills/skills/design-extractor ~/.claude/skills/
 cp -r design-skills/skills/design-auditor ~/.claude/skills/
 ```
 
-Or manually copy the `SKILL.md` files:
+That's it. The skills will be available in your next Claude Code session.
 
-```
-~/.claude/skills/design-extractor/SKILL.md
-~/.claude/skills/design-auditor/SKILL.md
-```
+## Output
 
-### Optional: Design Library
-
-Create a library directory to save and reuse designs across projects:
-
-```bash
-mkdir -p ~/.claude/designs
-```
-
-The skills will create this automatically on first use.
-
-## Output Format
-
-Both skills produce three files with identical structure:
+Both skills produce three files:
 
 ### DESIGN.md
 
@@ -112,19 +114,20 @@ Nine sections covering the complete design system:
 
 A ready-to-import Tailwind v4 `@theme` block:
 
-- Semantic color tokens with `color-mix()` light/dark variants
-- Fluid spacing using `clamp()`
+- Semantic color tokens (`--color-primary`, `--color-secondary`, `--color-accent`, etc.)
+- `color-mix()` light/dark variants for primary, secondary, and accent
+- Fluid spacing using `clamp()` (xxs through xxl)
 - Border radius scale
 - Font family with fallback stack
-- Commented `@font-face` template
+- Commented `@font-face` template (fonts need to be self-hosted separately)
 
 ### accessibility-report.md
 
 - Contrast ratio table for every surface/text pair
-- WCAG AA and AAA pass/fail for normal and large text
-- Suggested fixes for failing pairs
-- Colorblindness simulation (protanopia, deuteranopia, tritanopia)
-- Summary with pass rates
+- WCAG AA and AAA pass/fail for both normal and large text
+- Suggested fixes for each failing pair (specific hex values to meet the threshold)
+- Colorblindness simulation — flags pairs that become indistinguishable under protanopia, deuteranopia, or tritanopia
+- Summary with pass rates and critical failure count
 
 ## File Locations
 
@@ -133,6 +136,8 @@ A ready-to-import Tailwind v4 `@theme` block:
 | Design library | `~/.claude/designs/<name>/` |
 | Library index | `~/.claude/designs/_index.md` |
 | Per-project | `.claude/design/` in your project root |
+
+The library is created automatically on first use. The per-project directory is created when you run the auditor or say "use the \<name\> design."
 
 ## License
 
