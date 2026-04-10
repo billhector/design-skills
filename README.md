@@ -116,7 +116,17 @@ The **design-auditor does not require Firecrawl** — it reads local project fil
 
 ## Install
 
-Copy the skill folders into your Claude Code skills directory:
+Clone the repo and run the install script:
+
+```bash
+git clone https://github.com/billhector/design-skills.git
+cd design-skills
+./install.sh
+```
+
+The script copies the skills to `~/.claude/skills/` and prints lines you can add to your `~/.claude/CLAUDE.md` so Claude Code knows about the design library and workflow.
+
+Or install manually:
 
 ```bash
 git clone https://github.com/billhector/design-skills.git
@@ -124,7 +134,7 @@ cp -r design-skills/skills/design-extractor ~/.claude/skills/
 cp -r design-skills/skills/design-auditor ~/.claude/skills/
 ```
 
-That's it. The skills will be available in your next Claude Code session.
+Start a new Claude Code session to use the skills.
 
 ## Output
 
