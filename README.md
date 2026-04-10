@@ -135,6 +135,25 @@ A ready-to-import Tailwind v4 `@theme` block:
 - If dark mode detected: separate checks for both light and dark palettes
 - Summary with pass rates and critical failure count
 
+## Token Usage
+
+These skills run inside Claude Code, so each extraction or audit uses Claude API tokens. Here's a rough estimate based on testing with linear.app:
+
+| Step | Input | Output |
+|------|-------|--------|
+| Skill loaded into context | ~15K | - |
+| Scraping + analysis commands | ~5K | ~2K |
+| Screenshot capture + viewing | ~2K | - |
+| Generate DESIGN.md | ~2K | ~4K |
+| Generate tailwind-theme.css | ~1K | ~2K |
+| Generate accessibility-report.md | ~1.5K | ~3K |
+| Library management | ~500 | ~300 |
+| **Total per extraction** | **~27K** | **~12K** |
+
+**~35-40K tokens per extraction.** The auditor is similar or less (no Firecrawl or screenshot step). Sites with more complex CSS or dark mode will use slightly more.
+
+Each extraction also uses **2 Firecrawl credits** (1 for HTML scrape, 1 for screenshot). The auditor uses **0 credits** — it reads local files only.
+
 ## File Locations
 
 | Context | Location |
