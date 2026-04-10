@@ -58,6 +58,37 @@ Most existing tools handle one piece — scraping, or token extraction, or Tailw
 
 No other Claude Code skill does all five.
 
+## Skill Integration
+
+These skills are designed to work with other Claude Code skills in a natural workflow:
+
+### After extraction or audit, the skills suggest:
+
+| Next Step | Skill | What It Does |
+|-----------|-------|-------------|
+| Validate the theme | `design-system-standards` | Checks that tailwind-theme.css follows token conventions (semantic naming, fluid spacing, contrast pairs) |
+| Build components | `frontend-design` | Creates production-grade UI components using the extracted design tokens |
+| Check Tailwind v4 patterns | `tailwind-patterns` | Verifies the `@theme` block follows v4 best practices |
+
+### frontend-design reads your design files automatically
+
+If `.claude/design/DESIGN.md` exists in a project, `frontend-design` will read it before building any components — using your extracted colors, typography, spacing, and elevation instead of inventing new values. This means you can:
+
+1. Extract a design from stripe.com
+2. Copy it to your project ("use the stripe design")
+3. Ask `frontend-design` to "build me a pricing page"
+
+...and get components that match Stripe's visual language, using the exact tokens from your extraction.
+
+### Typical workflow
+
+```
+"Extract the design from linear.app"     → design-extractor
+"Use the linear design"                  → copies to .claude/design/
+"Validate the theme"                     → design-system-standards
+"Build me a dashboard sidebar"           → frontend-design (reads DESIGN.md automatically)
+```
+
 ## Requirements
 
 | Requirement | design-extractor | design-auditor |

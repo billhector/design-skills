@@ -624,7 +624,20 @@ When the user says "use the <name> design" in any project:
 3. Copy all three files (DESIGN.md, tailwind-theme.css, accessibility-report.md)
 4. Confirm: "Copied <name> design to `.claude/design/`. The tailwind-theme.css is ready to import into your stylesheet."
 
+## Next Steps
+
+After the audit completes, suggest these follow-up actions to the user:
+
+1. **"Validate the theme"** — invoke `design-system-standards` to verify the generated tailwind-theme.css meets all token conventions (semantic naming, fluid spacing, contrast pairs)
+2. **"Check Tailwind v4 patterns"** — invoke `tailwind-patterns` to verify the `@theme` block follows current v4 best practices, especially important after a v3→v4 migration
+3. **"Build components from this design"** — invoke `frontend-design` to create or rebuild UI components that match the documented design system. It will read `.claude/design/DESIGN.md` automatically.
+4. **"Fix accessibility issues"** — if the report flagged contrast failures, suggest specific token adjustments and offer to update the tailwind-theme.css with the fixes
+
+Include these as a bulleted list in your final report message to the user.
+
 ## See Also
 
 - **design-extractor** — extract a design system from a website URL instead of auditing local files
-- **design-system-standards** — the token conventions and Tailwind v4 patterns these files follow
+- **design-system-standards** — token conventions and Tailwind v4 patterns these files follow
+- **frontend-design** — build production-grade UI components from a DESIGN.md
+- **tailwind-patterns** — Tailwind v4 best practices and modern patterns

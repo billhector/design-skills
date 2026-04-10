@@ -546,7 +546,19 @@ When the user says "use the <name> design" in any project:
 3. Copy all files (DESIGN.md, tailwind-theme.css, accessibility-report.md, preview.png)
 4. Confirm: "Copied <name> design to `.claude/design/`. The tailwind-theme.css is ready to import into your stylesheet."
 
+## Next Steps
+
+After extraction completes, suggest these follow-up actions to the user:
+
+1. **"Validate the theme"** — invoke `design-system-standards` to check that the generated tailwind-theme.css meets all token conventions (semantic naming, fluid spacing, contrast pairs documented)
+2. **"Build components from this design"** — invoke `frontend-design` to create UI components (buttons, cards, forms, nav) that match the extracted design system. It will read `.claude/design/DESIGN.md` automatically if the design was copied to the project.
+3. **"Check Tailwind v4 patterns"** — invoke `tailwind-patterns` to verify the `@theme` block follows current v4 best practices (CSS-first config, container queries, modern utility patterns)
+
+Include these as a bulleted list in your final message to the user after saving the files.
+
 ## See Also
 
 - **design-auditor** — audit an existing project's design system instead of extracting from a URL
-- **design-system-standards** — the token conventions and Tailwind v4 patterns these files follow
+- **design-system-standards** — token conventions and Tailwind v4 patterns these files follow
+- **frontend-design** — build production-grade UI components from a DESIGN.md
+- **tailwind-patterns** — Tailwind v4 best practices and modern patterns
