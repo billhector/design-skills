@@ -51,14 +51,14 @@ Both skills are [Claude Code skills](https://docs.anthropic.com/en/docs/claude-c
 
 The extractor uses Firecrawl to scrape websites. You need:
 
-1. A Firecrawl account at [firecrawl.dev](https://firecrawl.dev) (free tier includes 500 credits)
+1. A Firecrawl account at [firecrawl.dev](https://firecrawl.dev) — **the free tier includes 500 credits**, which is plenty to get started (each extraction uses 1 credit). Paid plans are available if you need more.
 2. The Firecrawl CLI installed and authenticated:
 
 ```bash
 npx -y firecrawl-cli@latest init --all --browser
 ```
 
-The design-auditor reads local project files only — no Firecrawl or network access needed.
+The **design-auditor does not require Firecrawl** — it reads local project files only, no account or network access needed.
 
 ## Install
 
